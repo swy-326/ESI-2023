@@ -1,7 +1,10 @@
 const { PrismaClient, Prisma } = require('@prisma/client')
+
 const { z } = require('zod')
 
+
 const ParseUserProfileDTO = require('../dtos/user.profile.dto')
+
 
 const UserController = (fastify) => {
 
@@ -12,10 +15,12 @@ const UserController = (fastify) => {
     return {
 
         handleQuery: async (request, response ) => {
+
             // `)
                 //         count: 50,
                 //         stars: [
                 //             { value: 5, count: 10 },
+
                 //             { value: 4, count: 10 },
                 //             { value: 3, count: 10 },
                 //             { value: 2, count: 10 },
@@ -44,6 +49,7 @@ const UserController = (fastify) => {
                 //         },{
                 //             name: 'João Gomes',
                 //             image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+
                 //             description: 'muito rápida e tradução muito boa, me ajudou muito'
                 //         },{
                 //             name: 'João Gomes',
@@ -59,6 +65,7 @@ const UserController = (fastify) => {
             const user = await prisma.users.findFirst({
                 where: { id },
                 include: {
+
                     portfolio: true
                 }
             })
@@ -72,13 +79,16 @@ const UserController = (fastify) => {
                     LIMIT 3
             `)
 
+
             const stars = await prisma.$queryRaw(Prisma.sql`
                     SELECT orr.stars, count(orr.id)::INTEGER as total
                     FROM "OrderRaiting" orr
                     JOIN "Orders" o ON orr.order_id = o.internal_id
+
                     WHERE o.translator_id = ${internal_id}
                     GROUP BY orr.stars
             `)
+
 
             const count = stars.reduce( (accumulator, actual) => accumulator + actual.total, 0)
 
@@ -95,6 +105,7 @@ const UserController = (fastify) => {
         handleFindUser: async (request, reply) => {
             const { id } = request.params
 
+
             const users = await prisma.users.findFirst({
                 where: { id }
             });
@@ -103,9 +114,11 @@ const UserController = (fastify) => {
         },
 
         handleCreate: async (request, reply) => {
+
             const createUserBody = z.object({
                 name: z.string(),
                 email: z.string().email(),
+
                 password: z.string(),
                 confirm_password: z.string()
             })
@@ -115,6 +128,7 @@ const UserController = (fastify) => {
                         code: 'custom',
                         message: 'Password didn\'t matches'
                     })
+
                 }
             })
 
@@ -136,6 +150,7 @@ const UserController = (fastify) => {
         },
 
         handleUpdate: async (request, reply) => {
+
             const { id } = await request.jwtVerify()
 
             const updateUserBody = z.object({
@@ -151,8 +166,10 @@ const UserController = (fastify) => {
 
             const user = updateUserBody.parse(request.body)
 
+
             const updated = await prisma.users.update({
                 where: { id },
+
                 data: {
                     ...user
                 }
@@ -164,6 +181,7 @@ const UserController = (fastify) => {
 
         handleAddUploadImage: async (request, reply) => {
             
+
             const { id } = await request.jwtVerify()
 
             const {
